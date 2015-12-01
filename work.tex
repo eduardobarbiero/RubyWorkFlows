@@ -173,9 +173,6 @@ rails generate rails_workflow:install
 
 O desenvolvimento dessa gem foi iniciada após a liberação Rails 4, assim todas as atividades de desenvolvimento está focada para suportar essa versão do Ruby on Rails.
 
-
-Onde, "\texttt{template\_id}" é um id de sua ProcessTemplate e "context" é um hash, por exemplo \big\{resource: produto\big\}
-
 Rails workflow gem depende seguintes gems para funcionamento:
 \begin{itemize}
   \item bootstrap-rails-engine
@@ -201,7 +198,7 @@ fontsize=\footnotesize,
 RailsWorkflow::ProcessManager.build_process template_id, context
 RailsWorkflow::ProcessManager.start_process template_id, context
 \end{minted} 
-
+Onde, "\texttt{template\_id}" é um id de sua ProcessTemplate e "context" é um hash, por exemplo \big\{resource: produto\big\}
 \subsection{Operação de template}
 \par
 Operação de template é responsável por detectar se a operação deve ser criada(dependências de resolução) e para a construção de operação.
