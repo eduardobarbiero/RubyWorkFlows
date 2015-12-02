@@ -19,14 +19,18 @@
     \textbf{Eduardo Mauricio Barbiero}
     
     \vspace{0.4cm}
-    {Dezembro de 2015}
+    \large
+    Sistemas de Informação - Católica de Santa Catarina
+    
+    \vspace{0.4cm}
+    {Joinville, Dezembro de 2015}
     
     \vspace{0.9cm}
     \textbf{Resumo}
 \end{center}
 
 \par
-Análise comparativa entre dois FrameWorks desenvolvidos com Ruby, para auxiliar no Fluxo de trabalho de um determinado negócio. Será feita uma breve descrição sobre os dois frameworks "Workflow" e "Rails Workflow", que possuem algumas particularidades e demonstrado em forma de tabela a representação de funcionalidades e diferenças. 
+Análise comparativa entre dois FrameWorks desenvolvidos com Ruby, para auxiliar no Fluxo de trabalho de um determinado negócio. Será feita uma breve descrição sobre os dois frameworks "Workflow" e "State Machines", que possuem algumas particularidades e demonstrado em forma de tabela a representação de funcionalidades e diferenças. 
 
 \section{Workflow}
 
@@ -138,16 +142,15 @@ Esses eventos, são na verdade métodos de instancia de um fluxo e trabalho, que
 
 É fácil verificar se uma certa transição foi feita, a partir do evento atual, basta verificar pelo método "\texttt{problema.can\_submit?}", se essa transição foi submetida do estado atual.
 
-\section{Rails WorkFlow}
-
-Rails Workflow permite que você organize a sua lógica de negócios do aplicativo juntando operações pelo usuário e automatizar processos. Você pode configurar, criar e gerenciar processos para construir facilmente os sistemas de gerenciamento de projetos, vendas/sistemas de aprovisionamento de produtos, ERP, CMS, etc.  Rails Workflow é feito em Rails e pode ser montado em qualquer aplicação Rails.
-
-Todos os processos, configurações, operações e seus dados são mantidos para fins de processamento e de apoio. Essa Engine tem UI para configurar os modelos de processo e gerenciar os processos existentes.
-
-\includegraphics[width=13cm, height=7cm]{railsworkflow}
+\section{State Machines}
+State Machines é uma API baseada na antiga "State Machine" que foi descontinuada a algum tempo, porém leva em consideração a grande parte de sua tecnologia.
+\par
+A State Machines torná seu workflow operante e simples de gerenciar o comportamento de uma classe, simplifica o projeto, introduzindo as várias partes de uma máquina de estado real, incluindo estados, eventos, transições e retornos de chamada. No entanto, a API é projetado para ser tão simples que você não precisa mesmo de saber o que é uma máquina de estado.
 
 \par
-Rails Workflow é de fácil instalação e utilização, o que torna esse camada de instalação/desenvolvimento mais rápida.
+Vejamos um exemplo simples de aplicação, utilizando como base um Problema de infraestrutura na cidade, onde só poderia ser possível transitar pela rua, se todos os problemas fossem resolvidos. 
+
+Exemplificando:
 
 \begin{minted}
 [
@@ -157,36 +160,54 @@ baselinestretch=1.2,
 fontsize=\footnotesize,
 ]
 {ruby}
-gem 'rails_workflow', '0.3.5'
-
-#config/application.rb
-require 'rails_workflow'
-
-#routes.rb
-Rails.application.routes.draw do
-mount RailsWorkflow::Engine => '/workflow', as: 'workflow'
+class Infraestrutura  
+  state_machine :state, initial: :transitar do    
+    after_transition on: :reparar, :transitar
+    after_failure on: :transitando, :necessita_reparacao
+   
+    state :necessita_reparacao do
+	  def reparacao 
+	    @reparacao = true
+	  end
+	  def avisar_prefeitura	  
+	    #executa evento para avisar a prefeitura
+	  end
+	end
+	
+    state :transitar do	  	  
+      transition stalled: same, :transitando
+    end
+	
+	state :transitando do
+	  def transitando
+	    @transitando = true
+      end
+	end
+		
+	event :reparar do		  
+	  def parar 
+	    @transitando = false
+	  end 
+	  def reparado
+	    @reparacao = false
+	  end 
+	end	
+	
+	def initialize	  
+	  @transitando = false
+	  @reparacao = false
+	end	
+	
+	def parado?
+      @transitando
+    end
+  end	
 end
-
-rails generate rails_workflow:install
 \end{minted} 
 \par
+Desse modo, podemos observar, que o estado "\texttt{necessita\_reparacao}", é o fim do fluxo de trabalho, onde ele irá lançar uma notificação para a prefeitura, para resolução do problema.
+Vejamos como usar na prática.
 
-O desenvolvimento dessa gem foi iniciada após a liberação Rails 4, assim todas as atividades de desenvolvimento está focada para suportar essa versão do Ruby on Rails.
-
-Rails workflow gem depende seguintes gems para funcionamento:
-\begin{itemize}
-  \item bootstrap-rails-engine
-  \item devise
-  \item \texttt{will\_paginate}
-  \item sidekiq
-  \item slim-rails
-  \item jquery-rails
-  \item jquery-ui-rails
-  \item draper
-  \item Utilizar Ruby 2.
-\end{itemize}
-
-É resposável pela iniciação do fluxo de trabalho:
 \begin{minted}
 [
 frame=lines,
@@ -195,97 +216,25 @@ baselinestretch=1.2,
 fontsize=\footnotesize,
 ]
 {ruby}
-RailsWorkflow::ProcessManager.build_process template_id, context
-RailsWorkflow::ProcessManager.start_process template_id, context
-\end{minted} 
-Onde, "\texttt{template\_id}" é um id de sua ProcessTemplate e "context" é um hash, por exemplo \big\{resource: produto\big\}
-\subsection{Operação de template}
-\par
-Operação de template é responsável por detectar se a operação deve ser criada(dependências de resolução) e para a construção de operação.
-\begin{minted}
-[
-frame=lines,
-framesep=2mm,
-baselinestretch=1.2,
-fontsize=\footnotesize,
-]
-{ruby}
-# Verifica se o processo pode comecar.
-process.can_start?
+infra = Infraestrutura.new
+infra.state # transitando
 
-# Inicia processo
-process.start
+infra.transitando? # true
 
-# verifica se o processo ja foi completo:
-# completed - caso tenha terminado.
-# incomplete - caso nao tenha terminado.
-process.can_complete?
+# [#<StateMachines:Transition attribute=:state 
+# from="transitar" from_name=":transitar" to="transitando" 
+# to_name=:transitando>]
+infra.state_transitions 
 
-# Operacoes que ainda nao foram concluidas, eles podem ser:
-# in_progress, waiting, error, etc.
-# Operacoes completas - done, skipped, canceled.
-process.incompleted_operations
+# suponhamos que o metodo transitando, falhe
+infra.state # necessita_reparacao
+infra.reparar 
+infra.state_event # [:reparar]
 
-# Tentando construir nova operacao, ou para finalizar a operacao.
-process.operation_complete(operation)
-
-# Processo completo.
-process.complete
-
-\end{minted}  
-\subsection{Operações}
-\begin{minted}
-[
-frame=lines,
-framesep=2mm,
-baselinestretch=1.2,
-fontsize=\footnotesize,
-]
-{ruby}
-# Verifica se a operacao pode ser iniciada
-# if operation_status = NOT_STARTED.
-operation.can_start?
-
-# Ira iniciar a operacao
-operation.start
-
-# A partir daqui, voce pode iniciar o desenvolvimento, ou seja, pode adicionar seu codigo
-operation.execute
-
-# Verifica se esta completa
-operation.completed?
-
-# Verifica se possui processos filhos e seu status
-operation.can_complete?
-
-# Utilizado quando o usuario fizer alguma acao e resultar no fim dessa operacao, ira executar o codigo
-operation.on_complete
-
-\end{minted}  
-Esses são os principais passos para verificação e mudança de estado de uma operação
-\subsection{Operações de Usuário}
-Há métodos específicos para operações com base em usuários, que são importantes:
-\begin{minted}
-[
-frame=lines,
-framesep=2mm,
-baselinestretch=1.2,
-fontsize=\footnotesize,
-]
-{ruby}
-
-# Verifica se operacao pode ser atribuida a este usuario
-operation.can_be_assigned? user
-
-# Verifica se foi atribuida a este usuario
-peration.assigned? user
-
-# Restaura a operacao inicial atribuida a funcao ou grupo
-operation.cancel_assignment user
-
-# Atribui operacao a este usuario
-operation.assign user
-
+# vejamos que quando o evento de reparacao e chamado
+# o mesmo ja faz a transicao para o estando "transitando"
+# ao finalizar
+infra.state # transitando
 \end{minted} 
 
 \newpage
@@ -295,8 +244,8 @@ A seguir será feita uma comparação entre as duas tecnologias.
 \begin{tabular}{|l|l|l|l|l|l|l|l|l|}
 \hline
                & \scriptsize{Ruby}  & \scriptsize{Maleável} & \scriptsize{Rastreável} & \scriptsize{Interface} & \scriptsize{Tutoriais} & \scriptsize{Escalabilidade} & \scriptsize{Processos} \\ \hline
-\scriptsize{WorkFlow}       & 1.9.x & -1       & +1         & -1        & +1        & -1             & -1        \\ \hline
-\scriptsize{Rails Workflow} & 2.x   & +1       & +1         & +1        & -1        & +1             & +1        \\ \hline
+\scriptsize{WorkFlow}       & 1.9.x & +1       & +1         & -1        & +1        & -1             & +1        \\ \hline
+\scriptsize{State Machines} & 2.x   & +1       & +1         & -1        & -1        & +1             & +1        \\ \hline
 \end{tabular}
 \end{center}
 
@@ -304,15 +253,15 @@ A seguir será feita uma comparação entre as duas tecnologias.
 \section{Conclusão}
 
 \par
-Pelo fato do gem Workflow ser extremamente simples de ser usado e aplicado, torna-se uma boa escolha, quando se trata de um sistema de não tanta regra de negócio sobre o fluxo de trabalho. Ao contrário da Rails Workflow que traz uma ótima interface, onde pode ser acompanhado em qual etapa encontra-se o fluxo, sem muito código digitado e podendo fazer essas alterações em tempo real, e fazer requisições assíncronas e síncronas.
+Pelo fato do gem Workflow ser extremamente simples de ser usado e aplicado, torna-se uma boa escolha, quando se trata de um sistema de não tanta regra de negócio sobre o fluxo de trabalho, pela complexidade do código quando se trata de persistência. Ao contrário da State Machines que traz uma boa camada para desenvolvimento sobre persistência.
 \par
-Com base nisso, vale se destacar que de tal forma o programador deve se adequar no que realmente se precisa e a que melhor se encaixa na regra de negócio. A robustez da Rails Workflow e facilidade de mutação, ou a simplicidade da Workflow para desenvolvimento de uma api/app de simples manutenção.
+Com base nisso destacar de tal forma o programador deve se adequar no que realmente se precisa e a que melhor se encaixa na regra de negócio. A robustez da State Machines com relação a persistência, ou a simplicidade da Workflow para desenvolvimento de uma api/app de simples manutenção.
 
 \newpage
 \section{Referências}
 \url{https://github.com/geekq/workflow}\break
-\url{https://github.com/madzhuga/rails_workflow}\break
-\url{http://www.rails-workflow.com/}
+\url{https://github.com/state-machines/state_machines}\break
+\url{https://github.com/pluginaweek/state_machine}
 
 
 \pagenumbering{arabic}
