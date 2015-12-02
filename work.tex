@@ -36,7 +36,7 @@ Análise comparativa entre dois FrameWorks desenvolvidos com Ruby, para auxiliar
 
 Workflow é uma API inspirada na "máquina de estados finitos" para a modelagem e interagir com o que temos a tendência de se referir como "fluxo de trabalho".
 
-Uma grande remeça de informaçõe sobre o negócio, tende a envolver conceitos de fluxo de trabalho, bem como, essa biblioteca tende a expressar que esses conceitos sejam o mais claro possível. É utilizada uma terminologia semelhante encontrada na "teoria de máquina de estado".
+Uma grande remeça de informações sobre o negócio, tende a envolver conceitos de fluxo de trabalho, bem como, essa biblioteca tende a expressar que esses conceitos sejam o mais claro possível. É utilizada uma terminologia semelhante encontrada na "teoria de máquina de estado".
 
 Um fluxo de trabalho possui sempre um estado. Ele só pode estar em um estado de cada vez, porém, quando ele muda de estado, chamamos isso de transição. As transições de um evento, ocorrem de modo que cada transição ocorra, onde caso haja alguma falha na execução dessa transição, seja executado uma outra remessa de código, que possa ou não corrigir esse problema. Desse modo, esses transições podem gerar vários eventos, e qualquer evento pode gerar uma outra transição ou uma nova ação.
 
@@ -255,13 +255,14 @@ A seguir será feita uma comparação entre as duas tecnologias.
 \par
 Pelo fato do gem Workflow ser extremamente simples de ser usado e aplicado, torna-se uma boa escolha, quando se trata de um sistema de não tanta regra de negócio sobre o fluxo de trabalho, pela complexidade do código quando se trata de persistência. Ao contrário da State Machines que traz uma boa camada para desenvolvimento sobre persistência.
 \par
-Com base nisso destacar de tal forma o programador deve se adequar no que realmente se precisa e a que melhor se encaixa na regra de negócio. A robustez da State Machines com relação a persistência, ou a simplicidade da Workflow para desenvolvimento de uma api/app de simples manutenção.
+Com base nisso vale destacar que o programador deve se adequar no que realmente se precisa e a que melhor se encaixa na regra de negócio. A robustez da State Machines com relação a persistência, ou a simplicidade da Workflow para desenvolvimento de uma api/app de simples manutenção.
 
 \newpage
 \section{Referências}
-\url{https://github.com/geekq/workflow}\break
-\url{https://github.com/state-machines/state_machines}\break
-\url{https://github.com/pluginaweek/state_machine}
+
+\url{https://github.com/geekq/workflow}. Acesso em 30/11/2015.\break
+\url{https://github.com/state-machines/state_machines}. Acesso em 01/12/2015.\break
+\url{https://github.com/pluginaweek/state_machine}. Acesso em 01/12/2015.
 
 
 \pagenumbering{arabic}
